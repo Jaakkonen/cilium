@@ -77,16 +77,16 @@ func replaceOverlayDatapath(ctx context.Context, logger *slog.Logger, reg *regis
 		Constants:   overlayConfiguration(lnc, link),
 		MapRenames:  overlayMapRenames(lnc, link),
 		CollectionOptions: ebpf.CollectionOptions{
-			Maps: ebpf.MapOptions{PinPath: bpf.TCGlobalsPath()},
+			Maps: ebpf.MapOptions{PinPath: lnc.BPFFS.TCGlobalsPath},
 		},
-		ConfigDumpPath: filepath.Join(bpfStateDeviceDir(link.Attrs().Name), overlayConfig),
+		ConfigDumpPath: filepath.Join(lnc.BPFFS.StateDeviceDir(link.Attrs().Name), overlayConfig),
 	})
 	if err != nil {
 		return err
 	}
 	defer obj.Close()
 
-	linkDir := bpffsDeviceLinksDir(bpf.CiliumPath(), link)
+	linkDir := lnc.BPFFS.DeviceLinksDir(link)
 	if err := attachSKBProgram(logger, link, obj.FromOverlay, symbolFromOverlay,
 		linkDir, netlink.HANDLE_MIN_INGRESS, option.Config.EnableTCX); err != nil {
 		return fmt.Errorf("interface %s ingress: %w", link, err)
